@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreAuthorRequest;
 use App\Models\Author;
+use App\Models\Book;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect;
+use Inertia\Inertia;
 
 class AuthorController extends Controller
 {
@@ -14,7 +18,9 @@ class AuthorController extends Controller
      */
     public function index()
     {
-        //
+        $authors = Author::latest()->paginate();
+
+        return Inertia::render('Authors/Index', ['authors' => $authors]);
     }
 
     /**
@@ -24,7 +30,7 @@ class AuthorController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('Authors/Create');
     }
 
     /**
@@ -33,9 +39,13 @@ class AuthorController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreAuthorRequest $request)
     {
-        //
+        Author::create(
+            $request->validated()
+        );
+
+        return Redirect::route('authors.index')->with('success', 'Author created successfully.');
     }
 
     /**
@@ -57,7 +67,16 @@ class AuthorController extends Controller
      */
     public function edit(Author $author)
     {
-        //
+        return Inertia::render('Authors/Edit', [
+            'author' => [
+                'id' => $author->id,
+                'full_name' => $author->full_name,
+                'city' => $author->city ? $author->city : null,
+                'country' => $author->country ? $author->country : null,
+                'website' => $author->website ? $author->website : null,
+                'books' => $author->books()->get()->map->only('id', 'name', 'isbn', 'deleted_at'),
+            ],
+        ]);
     }
 
     /**
@@ -67,9 +86,13 @@ class AuthorController extends Controller
      * @param  \App\Models\Author  $author
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Author $author)
+    public function update(StoreAuthorRequest $request, Author $author)
     {
-        //
+        $author->update(
+            $request->validated()
+        );
+
+        return Redirect::back()->with('success', 'Author updated successfully.');
     }
 
     /**
@@ -79,7 +102,16 @@ class AuthorController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy(Author $author)
-    {
-        //
+    { 
+        if (Book::where('author_id', $author->id)->exists()) {
+
+            return Redirect::back()->with('error', 'You cannot delete an author attached to a book!');
+
+        } else {
+
+            $author->delete();
+
+            return Redirect::route('authors.index')->with('success', 'Author deleted successfully.');
+        }
     }
 }
