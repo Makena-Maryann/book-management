@@ -14,11 +14,18 @@ class CreateBooksTable extends Migration
     public function up()
     {
         Schema::create('books', function (Blueprint $table) {
-            $table->id();
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('author_id');
+            $table->string('name');
+            $table->string('isbn');
             $table->timestamps();
+            $table->softDeletes();
+            $table->foreign('author_id')
+                ->references('id')
+                ->on('authors')
+                ->cascadeOnDelete();
         });
     }
-
     /**
      * Reverse the migrations.
      *
