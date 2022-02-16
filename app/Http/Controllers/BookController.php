@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreBookRequest;
+use App\Models\Author;
 use App\Models\Book;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect;
+use Inertia\Inertia;
 
 class BookController extends Controller
 {
@@ -14,7 +18,9 @@ class BookController extends Controller
      */
     public function index()
     {
-        //
+        $books = Book::with('author:id,full_name')->latest()->paginate();
+
+        return Inertia::render('Books/Index', ['books' => $books]);
     }
 
     /**
@@ -24,7 +30,9 @@ class BookController extends Controller
      */
     public function create()
     {
-        //
+        $authors = Author::get();
+
+        return Inertia::render('Books/Create', ['authors' => $authors]);
     }
 
     /**
@@ -33,9 +41,13 @@ class BookController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreBookRequest $request)
     {
-        //
+        Book::create(
+            $request->validated()
+        );
+
+        return Redirect::route('books.index')->with('success', 'Book created successfully.');
     }
 
     /**
@@ -57,7 +69,16 @@ class BookController extends Controller
      */
     public function edit(Book $book)
     {
-        //
+        $authors = Author::get();
+
+        return Inertia::render('Books/Edit', [
+            'book' => [
+                'id' => $book->id,
+                'name' => $book->name,
+                'isbn' => $book->isbn,
+                'author_id' => $book->author_id,
+            ], 'authors' => $authors
+        ]);
     }
 
     /**
@@ -67,9 +88,13 @@ class BookController extends Controller
      * @param  \App\Models\Book  $book
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Book $book)
+    public function update(StoreBookRequest $request, Book $book)
     {
-        //
+        $book->update(
+            $request->validated()
+        );
+
+        return Redirect::back()->with('success', 'Book updated successfully.');
     }
 
     /**
@@ -80,6 +105,8 @@ class BookController extends Controller
      */
     public function destroy(Book $book)
     {
-        //
+        $book->delete();
+
+        return Redirect::route('books.index')->with('success', 'Book deleted successfully.');
     }
 }
