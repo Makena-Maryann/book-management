@@ -1,6 +1,12 @@
 <?php
 
+use App\Http\Controllers\AuthorController;
+use App\Http\Controllers\BookController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,10 +19,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Auth::routes(['register' => false]);
+
 Route::get('/', function () {
-    return view('welcome');
-});
+    return Inertia::render('Dashboard/Index');
+})->name('dashboard');
 
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::resource('authors', AuthorController::class);
+Route::resource('books', BookController::class);
+Route::resource('users', UserController::class);
